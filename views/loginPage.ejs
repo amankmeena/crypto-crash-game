@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Login | Crypto Crash</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background: #191a1f;
+            color: #dadada;
+            min-height: 100vh;
+        }
+
+        .cc-card {
+            background: #23242c;
+            border-radius: 18px;
+            border: none;
+            box-shadow: none;
+        }
+
+        .cc-header {
+            font-size: 2.0rem;
+            letter-spacing: .5px;
+            color: #ffe184;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        .cc-subhead {
+            color: #b6fff5;
+            letter-spacing: .4px;
+            font-size: 1.1rem;
+            margin-bottom: 1.3rem;
+        }
+
+        .cc-btn-gold {
+            background: #ffe184;
+            color: #23242c;
+            border: none;
+            font-weight: 700;
+            border-radius: 8px;
+        }
+
+        .cc-btn-gold:hover {
+            background: #cda83b;
+            color: #23242c;
+        }
+
+        .cc-form label {
+            color: #7e808c;
+            margin-bottom: 5px;
+            font-size: 0.98rem;
+            font-weight: 500;
+        }
+
+        .cc-form input {
+            background: #1f2026;
+            color: #dadada;
+            border: 1px solid #31323b;
+            border-radius: 8px;
+        }
+
+        .cc-form input:focus {
+            border-color: #88ffb2;
+            box-shadow: 0 0 0 0.13rem #88ffb242;
+            background: #262738;
+            color: #88ffb2;
+        }
+
+        .cc-footer {
+            color: #66697a;
+            font-size: .96rem;
+            margin-top: 24px;
+        }
+
+        .cc-logo {
+            font-size: 2.0rem;
+            font-weight: bold;
+            color: #ffe184;
+            letter-spacing: 1px;
+            margin-bottom: 7px;
+        }
+
+        .err-msg {
+            background: rgb(248, 163, 163);
+            color: red;
+            border-radius: 10px;
+            text-align: center;
+            font-weight: bold;
+            padding: 5px;
+        }
+
+        .visible {
+            display: block;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        @media (max-width: 575.98px) {
+            .cc-card {
+                padding: 28px 10px;
+            }
+
+            .cc-header {
+                font-size: 1.37rem;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container d-flex flex-column justify-content-center align-items-center min-vh-100">
+        <div class="cc-logo text-center">Crypto Crash</div>
+        <div class="cc-card p-4 p-sm-5 shadow w-100" style="max-width: 425px;">
+            <div class="cc-header text-center mb-1">Login</div>
+            <div class="cc-subhead text-center mb-4">Access your account</div>
+            <form class="cc-form" id="loginForm">
+                <div class="mb-3">
+                    <label for="loginUsername" class="form-label">Username</label>
+                    <input type="text" class="form-control" id="loginUsername" name="loginUsername"
+                        autocomplete="username" placeholder="Enter username" required>
+                </div>
+                <!-- <div class="mb-2">
+          <label for="loginPassword" class="form-label">Password</label>
+          <input type="password" class="form-control" id="loginPassword" autocomplete="current-password" placeholder="Password" required>
+        </div> -->
+                <!-- <div class="mb-3 d-flex justify-content-between align-items-center">
+          <div class="form-check">
+            <input class="form-check-input" type="checkbox" id="rememberMe">
+            <label class="form-check-label" for="rememberMe" style="color:#5fd294;">Remember me</label>
+          </div>
+          <a href="#" style="color:#5fd294;text-decoration:underline;font-size:0.97rem;">Forgot password?</a>
+        </div> -->
+                <button type="submit" class="btn cc-btn-gold w-100 mb-2">Log In</button>
+                <div class="err-msg <%= typeof errMsg !== 'undefined' && errMsg ? 'visible' : 'hidden' %>">
+                    <%= typeof errMsg !=='undefined' ? errMsg : "" %>
+                </div>
+                <div class="text-center mt-2 cc-footer">
+                    Don’t have an account? <a href="/" style="color:#5fd294;text-decoration:underline;">Sign Up</a>
+                </div>
+            </form>
+        </div>
+        <div class="text-center cc-footer mt-4">
+            &copy; 2025 Crypto Crash. All rights reserved.
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('loginForm').addEventListener('submit', function (e) {
+            e.preventDefault();
+            const form = e.target;
+            const username = form.loginUsername.value;
+
+            fetch('/loginPlayer', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ loginUsername: username })
+            })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success) {
+                        // Save player data for next page
+                        localStorage.setItem('player', JSON.stringify(data.player));
+                        window.location.href = '/gamePage';
+                    } else {
+                        // Show error message
+                        const errMsg = document.querySelector('.err-msg');
+                        errMsg.textContent = data.errMsg || "Signup failed";
+                        errMsg.classList.remove('hidden');
+                        errMsg.classList.add('visible');
+                        setTimeout(function () {
+                            errMsg.classList.remove('visible');
+                            errMsg.classList.add('hidden');
+                        }, 2000);
+                    }
+
+                    form.reset();
+                });
+        });
+    </script>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+
+</html>
