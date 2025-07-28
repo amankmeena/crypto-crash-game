@@ -2,6 +2,7 @@
 const { v4: uuidv4 } = require('uuid');
 const roundModel = require('../models/roundModel');
 const generateCrashPoint = require('./generateCrashPoint');
+const { getCryptoPrice } = require('./cryptoService');
 const growthFactor = 0.09;
 let roundNumber = 1;
 let roundID = null;
@@ -25,7 +26,7 @@ function formatTime(milliseconds) {
 function addCrash(multiplier, io) {
   recentCrashes.unshift(multiplier);
   if (recentCrashes.length > 10) recentCrashes.pop();
-  io.emit('recentCrashes', recentCrashes);
+  io.emit('recent_crashes', recentCrashes);
 }
 
 const countdown = async (io) => {
@@ -46,6 +47,13 @@ const countdown = async (io) => {
       bets: [],
       cashouts: []
     });
+
+    // io.emit('crypto_prices', async () => {
+    //   const btcPrice = await getCryptoPrice('BTC');
+    //   const ethPrice = await getCryptoPrice('ETH');
+
+    //   return { btcPrice, ethPrice }
+    // })
 
     io.emit('provablyFair', {
       serverSeedHash: newRound.server_seed_hash,
@@ -121,6 +129,19 @@ const roundSheduler = async (io) => {
       nonce: Math.floor(Math.random() * 10000),
       bets: [],
       cashouts: []
+    });
+
+    // io.emit('crypto_prices', async () => {
+    //   const btcPrice = await getCryptoPrice('BTC');
+    //   const ethPrice = await getCryptoPrice('ETH');
+
+    //   return { btcPrice, ethPrice }
+    // })
+
+    io.emit('provablyFair', {
+      serverSeedHash: newRound.server_seed_hash,
+      clientSeed: newRound.client_seed,
+      nonce: newRound.nonce
     });
 
     roundID = newRound.round_id;

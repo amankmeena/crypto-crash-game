@@ -7,6 +7,10 @@ const transactionSchema = new Schema({
         type: mongoose.Schema.Types.ObjectId,
         ref: 'player'
     },
+    roundID: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'round'
+    },
     amount: {
         usd: { type: Number, default: 0},
         crypto: { type: Number, default: 0},

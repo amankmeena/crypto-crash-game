@@ -6,6 +6,75 @@ Crypto Crash is a backend implementation of the "Crash" game, where players bet 
 
 ---
 
+## Real-Time Game Actions via Socket.io (No REST API)
+
+All core game actions are handled via **Socket.io events** instead of REST API calls. This ensures low latency and instant updates for all players.
+
+### 1. Routes Handling by Sockets (Not API Calls)
+
+#### Joining the Game
+- The client emits a `join_game` event via Socket.io.
+- The server:
+  - Creates a new player in the database.
+  - Initializes their wallets with USD and crypto.
+  - Notifies all other players of the new join via `player_joined`.
+  - Sends the new player their info (`player_info`) and the current game state (`game_state`).
+
+#### Placing a Bet
+- The client emits a `place_bet` event with bet details.
+- The server:
+  - Validates the player and round.
+  - Creates a bet transaction in the database.
+  - Updates the round and player wallets.
+  - Responds with `bet_result`.
+
+#### Cashing Out
+- The client emits a `cashout` event.
+- The server:
+  - Validates the player, round, and bet.
+  - Creates a cashout transaction.
+  - Updates the round and player wallets.
+  - Responds with `cashout_result`.
+
+#### Leaving the Game (Disconnect)
+- When a player disconnects, the server:
+  - Removes the player from the database.
+  - Removes all their transactions.
+  - Removes their bets and cashouts from all rounds.
+  - Notifies all players via `player_left`.
+  - If no players remain, deletes all rounds and stops the game loop.
+
+> **Note:** No REST API endpoints are used for these actions; everything is handled in real-time via Socket.io events.
+
+---
+
+### 2. Database Management on Player Connection and Disconnection
+
+#### On Player Connection
+- A new player document is created in the database with a unique username, socket ID, and initialized wallets.
+- The player’s info is stored in `socket.data` for quick access during their session.
+
+#### On Player Disconnection
+- The player’s document is deleted from the database.
+- All transactions (bets and cashouts) associated with the player are deleted.
+- All rounds are updated to remove references to the player’s transactions in their `bets` and `cashouts` arrays.
+- If the last player disconnects:
+  - The game loop is stopped.
+  - All round documents are deleted, resetting the game state.
+
+---
+
+### Summary Table
+
+| Action      | How Handled (Socket Event) | DB Operations                                                      |
+|-------------|----------------------------|--------------------------------------------------------------------|
+| Join Game   | `join_game`                | Create player, initialize wallets, store in `socket.data`          |
+| Place Bet   | `place_bet`                | Validate, create transaction, update round & player wallets        |
+| Cashout     | `cashout`                  | Validate, create transaction, update round & player wallets        |
+| Disconnect  | `disconnect`               | Delete player, remove transactions, update rounds, cleanup if last |
+
+---
+
 ## Features
 
 - **Crash Game Logic**
@@ -31,7 +100,6 @@ Crypto Crash is a backend implementation of the "Crash" game, where players bet 
 
 ```
 .env.local
-Assgnment.md
 package.json
 README.md
 server.js
@@ -56,11 +124,8 @@ services/
   generateCrashPoint.js
 sockets/
 utils/
-  requireAuth.js
 views/
-  gamePage.ejs
   index.ejs
-  loginPage.ejs
 ```
 
 ---
@@ -88,37 +153,7 @@ views/
    ```sh
    npm start
    ```
-   - Server runs on port `8000`.
-
----
-
-## API Endpoints
-
-### Player Actions
-
-- **Sign Up:**  
-  `POST /createPlayer`  
-  - Request: `{ signupUsername }`
-  - Response: `{ success, player }`
-
-- **Login:**  
-  `POST /loginPlayer`  
-  - Request: `{ loginUsername }`
-  - Response: `{ success, player }`
-
-- **Place Bet:**  
-  `POST /player/placeBet`  
-  - Request: `{ betAmount, cryptoTypeSymbol, roundId, playerId }`
-  - Response: `{ success, player }`
-
-- **Cash Out:**  
-  `POST /player/cashout`  
-  - Request: `{ cashoutPoint, roundId, playerId }`
-  - Response: `{ success, player }`
-
-- **Check Wallet:**  
-  `POST /player/wallet/:player_id`  
-  - Response: Wallet info (to be implemented)
+   - Server runs on port `3000`.
 
 ---
 
@@ -175,7 +210,6 @@ To populate the database with sample players and rounds, use the signup page or 
 
 ## Testing
 
-- Use Postman or cURL for API endpoints.
 - Use the provided EJS pages and [`public/js/gamePageEventHandler.js`](public/js/gamePageEventHandler.js) for WebSocket client testing.
 
 ---
