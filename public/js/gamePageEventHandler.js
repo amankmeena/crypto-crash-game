@@ -57,7 +57,7 @@ function showError(errMsg) {
     setTimeout(function () {
         errorMsgBox.classList.remove('visible');
         errorMsgBox.classList.add('hidden');
-    }, 5000);
+    }, 2000);
 }
 
 function showSuccess(successMsg) {
@@ -67,7 +67,7 @@ function showSuccess(successMsg) {
     setTimeout(function () {
         successMsgBox.classList.remove('visible');
         successMsgBox.classList.add('hidden');
-    }, 5000);
+    }, 2000);
 }
 
 socket.on('player_joined', function (data) {
@@ -76,7 +76,7 @@ socket.on('player_joined', function (data) {
 
 socket.on('player_info', function (data) {
     const { newPlayer: player } = data;
-    
+
     player_id = player.player_id;
 
     usdBalance.innerText = '$' + player.usdWallet.toFixed(2);
@@ -143,6 +143,14 @@ socket.on('provablyFair', function (data) {
 socket.on('player_left', function (data) {
     showSuccess(`Player ${data.username} left.`);
     onlinePlayers.innerText = data.connectedPlayers;
+});
+
+socket.on('player_not_initialized', function (data) {
+    if (data.success) {
+        showSuccess("Player initialized successfully!");
+    } else {
+        showError(data.errMsg);
+    }
 });
 
 // socket.on('crypto_prices', function (data) {

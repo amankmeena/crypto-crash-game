@@ -46,31 +46,35 @@ io.on('connection', (socket) => {
   console.log("Player connected. Total:", connectedPlayers);
 
   socket.on('join_game', async () => {
-    const btcPrice = await getCryptoPrice('BTC');
-    const ethPrice = await getCryptoPrice('ETH');
+    try {
+      const btcPrice = await getCryptoPrice('BTC');
+      const ethPrice = await getCryptoPrice('ETH');
 
-    const newPlayer = await playerModel.create({
-      player_username: uuidv4(),
-      player_id: socket.id,
-      usdWallet: 10000,
-      cryptoWallet: {
-        BTC: usdToCrypto(10000, btcPrice),
-        ETH: usdToCrypto(10000, ethPrice)
-      },
-    });
+      const newPlayer = await playerModel.create({
+        player_username: uuidv4(),
+        player_id: socket.id,
+        usdWallet: 10000,
+        cryptoWallet: {
+          BTC: usdToCrypto(10000, btcPrice),
+          ETH: usdToCrypto(10000, ethPrice)
+        },
+      });
 
-    // Save player reference
-    socket.data.playerUsername = newPlayer.player_username;
-    socket.data.playerId = newPlayer._id;
+      // Save player reference
+      socket.data.playerUsername = newPlayer.player_username;
+      socket.data.playerId = newPlayer._id;
 
-    // Notify all players 
-    socket.broadcast.emit('player_joined', { username: newPlayer.player_username });
+      // Notify all players 
+      socket.broadcast.emit('player_joined', { username: newPlayer.player_username });
 
-    // Send player info
-    socket.emit('player_info', { newPlayer });
+      // Send player info
+      socket.emit('player_info', { newPlayer });
 
-    // Send current state on connect
-    socket.emit('game_state', { round: getRound(), multiplier: getMultiplier(), roundID: getRoundID(), relaxTimer: getRelaxTimer(), connectedPlayers });
+      // Send current state on connect
+      socket.emit('game_state', { round: getRound(), multiplier: getMultiplier(), roundID: getRoundID(), relaxTimer: getRelaxTimer(), connectedPlayers });
+    } catch (error) {
+      socket.emit('player_not_initialized', { success: false, errMsg: error.message });
+    }
   });
 
   if (!gameLoop) {
