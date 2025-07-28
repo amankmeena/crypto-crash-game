@@ -85,7 +85,7 @@ All core game actions are handled via **Socket.io events** instead of REST API c
   - Game state, bets, cashouts, and round history stored in MongoDB.
 
 - **Cryptocurrency Integration**
-  - Real-time price fetching from CoinGecko API.
+  - Real-time price fetching from CoinCap API.
   - USD-to-crypto conversion at bet time.
   - Simulated player wallets for BTC/ETH.
   - Transaction logs for bets and cashouts, including mock transaction hashes.
@@ -145,7 +145,8 @@ views/
 
 3. **Configure environment variables:**
    - Copy `.env.local` and set:
-     - `COINGECKO_API_KEY` (CoinGecko API key)
+     - `COINCAP_API_KEY` (CoinCap API key)
+     - `COINCAP_PATH_URL` (CoinCap path url)
      - `MONGO_URI` (MongoDB connection string)
      - `SESSION_SECRET_KEY` (session secret)
 
@@ -186,7 +187,7 @@ views/
 
 ## USD-to-Crypto Conversion
 
-- Real-time prices fetched from CoinGecko (see [`services/cryptoService.js`](services/cryptoService.js)).
+- Real-time prices fetched from CoinCap (see [`services/cryptoService.js`](services/cryptoService.js)).
 - Conversion:  
   - Bet: `usd / price`
   - Cashout: `crypto * multiplier`
@@ -199,12 +200,6 @@ views/
 - [`models/playerModel.js`](models/playerModel.js): Player info and wallet.
 - [`models/roundModel.js`](models/roundModel.js): Round history, crash point, bets, cashouts.
 - [`models/transactionModel.js`](models/transactionModel.js): Bet/cashout transactions.
-
----
-
-## Sample Data
-
-To populate the database with sample players and rounds, use the signup page or create entries via MongoDB shell.
 
 ---
 
