@@ -1,9 +1,8 @@
 const axios = require('axios');
 require('dotenv').config({ path: '.env.local' });
 
-const apiKey = process.env.COINGECKO_API_KEY;
-// const url = 'https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&per_page=10';
-const url = process.env.COINGECKO_PATH_URL;
+const apiKey = process.env.COINCAP_API_KEY;
+const url = process.env.COINCAP_PATH_URL;
 
 let priceCache = {};
 let data = [];
@@ -19,32 +18,23 @@ async function getCryptoPrice(symbol) {
     try {
         const response = await axios.get(url, {
             headers: {
-                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/91.0.4472.124 Safari/537.36',
-                'Accept': 'application/json'
+                'accept': 'application/json',
+                'Authorization': `Bearer ${apiKey}`
             }
         });
 
-        // const response = await axios.get(url);
-        // for (const element of response.data) {
-        //     data.push({
-        //         id: element.id,
-        //         symbol: element.symbol,
-        //         name: element.name,
-        //         image: element.image,
-        //         current_price: element.current_price,
-        //     })
-        // }
-
         lastFetched = now;
-        priceCache = {
-            BTC: response.data.bitcoin.usd,
-            ETH: response.data.ethereum.usd
-        };
+        for (const currency of response.data.data) {
+            if (currency.id == 'bitcoin') {
+                priceCache.BTC = Number(currency.priceUsd).toFixed(2)
+            } else if (currency.id == 'ethereum') {
+                priceCache.ETH = Number(currency.priceUsd).toFixed(2)
+            }
+        }
 
         return priceCache[symbol];
     } catch (error) {
         console.error('Error fetching prices:', error.message);
-        // Return a fallback value or throw error for handling in calling code
         throw new Error('Failed to fetch crypto prices');
     }
 }
